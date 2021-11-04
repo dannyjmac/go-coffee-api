@@ -4,7 +4,8 @@
 // go run main.go
 
 // Runing/Testing
-// curl localhost:9000 | jq
+// GET all items = curl localhost:9090 | jq
+// POST an item = curl localhost:9090 -d ' {"name": "Drink"}'
 
 package main
 
