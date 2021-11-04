@@ -1,12 +1,10 @@
 // CREATE A BASIC WEB SERVER
-//  https://youtu.be/VzBGi_n65iU
 
 // To Start
 // go run main.go
 
 // Runing/Testing
-// curl localhost:9000 -d 'Danny' -v
-// (making a request with the verbose flag and passing in some data of 'Danny')
+// curl localhost:9000 | jq
 
 package main
 
