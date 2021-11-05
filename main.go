@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/dannyjmac/go-micro-3/handlers"
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -26,10 +27,20 @@ func main() {
 	l := log.New(os.Stdout, "products-api", log.LstdFlags)
 	ph := handlers.NewProducts(l)
 
-	// This is a servemux, basically a router like in node.js
-	sm := http.NewServeMux()
-	// Like nodejs routes, when a request comes into the server, calls the products handler
-	sm.Handle("/", ph)
+	// Gorilla's mux server
+	sm := mux.NewRouter()
+
+	// Gives a router specfivally for a GET route
+	getRouter := sm.Methods(http.MethodGet).Subrouter()
+	getRouter.HandleFunc("/", ph.GetProducts)
+
+	putRouter := sm.Methods(http.MethodPut).Subrouter()
+	putRouter.HandleFunc("/{id:[0-9]+}", ph.UpdateProducts)
+	putRouter.Use(ph.MiddlewareProductValidation)
+
+	postRouter := sm.Methods(http.MethodPost).Subrouter()
+	postRouter.HandleFunc("/", ph.AddProduct)
+	postRouter.Use(ph.MiddlewareProductValidation)
 
 	s := &http.Server{
 		Addr:         ":9090",
