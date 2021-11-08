@@ -2,8 +2,6 @@
 // POST an item = curl localhost:9090 -d ' {"name": "Drink"}'
 // PUT (update an item) = curl localhost:9090/1 -XPUT -d '{"name": "fanta"}'
 
-// Episode 6 changes mostly in the data folder
-
 package main
 
 import (

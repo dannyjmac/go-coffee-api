@@ -10,7 +10,6 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-// Fields have validator fields for validation
 type Product struct {
 	ID          int     `json:"id"`
 	Name        string  `json:"name" validate:"required"`
@@ -22,19 +21,14 @@ type Product struct {
 	DeletedOn   string  `json:"-"`
 }
 
-// A validator method to validate data as iot comes in
 func (p *Product) Validate() error {
 	validate := validator.New()
 
-	// Special validators can be created to handle certain data types
-	// in this case one is being created for SKU
-	// And used in the struct above
 	validate.RegisterValidation("sku", skuValidation)
 	return validate.Struct(p)
 }
 
 func skuValidation(fl validator.FieldLevel) bool {
-	// sku is of format abc-absd-dfsdf
 	re := regexp.MustCompile(`[a-z]+-[a-z]+-[a-z]+`)
 	matches := re.FindAllString(fl.Field().String(), -1)
 
@@ -43,6 +37,7 @@ func skuValidation(fl validator.FieldLevel) bool {
 	}
 
 	return true
+
 }
 
 type Products []*Product

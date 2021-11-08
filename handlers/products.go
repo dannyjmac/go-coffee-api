@@ -41,7 +41,6 @@ func (p *Products) AddProduct(rw http.ResponseWriter, r *http.Request) {
 func (p *Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle PUT Product")
 
-	// The id of the product to update now comes from Gorilla mux
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
