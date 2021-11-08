@@ -18,9 +18,6 @@ func NewProducts(l *log.Logger) *Products {
 	return &Products{l}
 }
 
-// Previously private methods (getProducts etc) have now been made public
-// As they are no longer being called buy the ServeHTTP method we had. Gorilla
-// Is handling all of the serving
 func (p *Products) GetProducts(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle GET Products")
 	lp := data.GetProducts()
@@ -64,6 +61,7 @@ func (p *Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
 
 type KeyProduct struct{}
 
+// Middleware like used for Node.js app.use
 func (p Products) MiddlewareProductValidation(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		// Take data in the post and convert it to our struct - a JSON encoder
