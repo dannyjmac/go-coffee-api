@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -61,15 +62,25 @@ func (p *Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
 
 type KeyProduct struct{}
 
-// Middleware like used for Node.js app.use
 func (p Products) MiddlewareProductValidation(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		// Take data in the post and convert it to our struct - a JSON encoder
 		prod := data.Product{}
 
 		err := prod.FromJSON(r.Body)
 		if err != nil {
 			http.Error(rw, "Unable to interpret your JSON, Jason", http.StatusBadRequest)
+			return
+		}
+
+		// Add the validation for the incoming product
+		err = prod.Validate()
+		if err != nil {
+			p.l.Println("[ERROR] validating product", err)
+			http.Error(
+				rw,
+				fmt.Sprintf("Error validating product: %s", err),
+				http.StatusBadRequest,
+			)
 			return
 		}
 

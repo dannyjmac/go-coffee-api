@@ -4,43 +4,63 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"regexp"
 	"time"
+
+	"github.com/go-playground/validator/v10"
 )
 
+// Fields have validator fields for validation
 type Product struct {
-	// Uses tags at the end to tell the json parser what the fields should be called
 	ID          int     `json:"id"`
-	Name        string  `json:"name"`
+	Name        string  `json:"name" validate:"required"`
 	Description string  `json:"description"`
-	Price       float32 `json:"price"`
-	SKU         string  `json:"sku"`
+	Price       float32 `json:"price" validate:"gt=0"`
+	SKU         string  `json:"sku" validate:"required,sku"`
 	CreatedOn   string  `json:"-"`
 	UpdatedOn   string  `json:"-"`
 	DeletedOn   string  `json:"-"`
 }
 
+// A validator method to validate data as iot comes in
+func (p *Product) Validate() error {
+	validate := validator.New()
+
+	// Special validators can be created to handle certain data types
+	// in this case one is being created for SKU
+	// And used in the struct above
+	validate.RegisterValidation("sku", skuValidation)
+	return validate.Struct(p)
+}
+
+func skuValidation(fl validator.FieldLevel) bool {
+	// sku is of format abc-absd-dfsdf
+	re := regexp.MustCompile(`[a-z]+-[a-z]+-[a-z]+`)
+	matches := re.FindAllString(fl.Field().String(), -1)
+
+	if len(matches) != 1 {
+		return false
+	}
+
+	return true
+}
+
 type Products []*Product
 
-// Create reciever function for ^ Products type to encode json for a response
-
-// A reciever function for the Product struct that gives the capability to convert Struct > JSON to send back in an http get
 func (p *Products) ToJSON(w io.Writer) error {
 	e := json.NewEncoder(w)
 	return e.Encode(p)
 }
 
-// A reciever function for the Product struct that gives the capability to convert JSON > Struct that comes from an http put
 func (p *Product) FromJSON(r io.Reader) error {
 	e := json.NewDecoder(r)
 	return e.Decode(p)
 }
 
-// Gets all products in the "database"
 func GetProducts() Products {
 	return productList
 }
 
-// Adds a new product to the "database" (running memory for now)
 func AddProduct(p *Product) {
 	p.ID = getNextID()
 	productList = append(productList, p)
@@ -70,7 +90,6 @@ func findProduct(id int) (*Product, int, error) {
 	return nil, -1, ErrProductNotFound
 }
 
-// Gets annother ID
 func getNextID() int {
 	lp := productList[len(productList)-1]
 	return lp.ID + 1

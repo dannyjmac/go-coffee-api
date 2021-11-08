@@ -1,12 +1,8 @@
-// CREATE A BASIC WEB SERVER
-
-// To Start
-// go run main.go
-
-// Runing/Testing
 // GET all items = curl localhost:9090 | jq
 // POST an item = curl localhost:9090 -d ' {"name": "Drink"}'
 // PUT (update an item) = curl localhost:9090/1 -XPUT -d '{"name": "fanta"}'
+
+// Episode 6 changes mostly in the data folder
 
 package main
 
@@ -27,10 +23,8 @@ func main() {
 	l := log.New(os.Stdout, "products-api", log.LstdFlags)
 	ph := handlers.NewProducts(l)
 
-	// Gorilla's mux server
 	sm := mux.NewRouter()
 
-	// Gives a router specfivally for a GET route
 	getRouter := sm.Methods(http.MethodGet).Subrouter()
 	getRouter.HandleFunc("/", ph.GetProducts)
 
@@ -50,7 +44,6 @@ func main() {
 		WriteTimeout: 1 * time.Second,
 	}
 
-	// A goroutine - how go handles concurrency
 	go func() {
 		err := s.ListenAndServe()
 		if err != nil {
@@ -67,9 +60,6 @@ func main() {
 
 	s.ListenAndServe()
 
-	// A shutdown function that waits until the requests have been completed before shutting down gracefully
-	// So that there are not clients trying to fetch data as you shut the server
-	// In this case take 30 seconds to shutdown
 	tc, _ := context.WithTimeout(context.Background(), time.Second*30)
 	s.Shutdown(tc)
 
