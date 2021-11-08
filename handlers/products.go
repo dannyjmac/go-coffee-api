@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"strconv"
@@ -34,14 +35,8 @@ func (p *Products) GetProducts(rw http.ResponseWriter, r *http.Request) {
 func (p *Products) AddProduct(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle POST Product")
 
-	// Take data in the post and convert it to our struct - a JSON encoder
-	prod := &data.Product{}
-	err := prod.FromJSON(r.Body)
-	if err != nil {
-		http.Error(rw, "Unable to interpret your JSON, Jason", http.StatusBadRequest)
-	}
-
-	data.AddProduct(prod)
+	prod := r.Context().Value(KeyProduct{}).(data.Product)
+	data.AddProduct(&prod)
 
 }
 
@@ -55,8 +50,9 @@ func (p *Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, "Unable to convert id", http.StatusBadRequest)
 	}
 
+	prod := r.Context().Value(KeyProduct{}).(data.Product)
 
-	err = data.UpdateProduct(id, prod)
+	err = data.UpdateProduct(id, &prod)
 	if err == data.ErrProductNotFound {
 		http.Error(rw, "Product not found", http.StatusNotFound)
 	}
@@ -66,22 +62,22 @@ func (p *Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type KeyProduct struct
+type KeyProduct struct{}
 
 func (p Products) MiddlewareProductValidation(next http.Handler) http.Handler {
-	return http.HandleFunc(rw *http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		// Take data in the post and convert it to our struct - a JSON encoder
-		prod := &data.Product{}
+		prod := data.Product{}
 
-		err = prod.FromJSON(r.Body)
+		err := prod.FromJSON(r.Body)
 		if err != nil {
 			http.Error(rw, "Unable to interpret your JSON, Jason", http.StatusBadRequest)
 			return
 		}
 
-		ctx := r.Context().WithValue(KeyProduct{}, prod)
-		req := r.WithContext(ctx)
+		ctx := context.WithValue(r.Context(), KeyProduct{}, prod)
+		r = r.WithContext(ctx)
 
-		next.ServeHTTP(rw, req)
-	}
+		next.ServeHTTP(rw, r)
+	})
 }
