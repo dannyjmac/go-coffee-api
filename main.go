@@ -1,6 +1,7 @@
-// GET all items = curl localhost:9090 | jq
-// POST an item = curl localhost:9090 -d ' {"name": "Drink"}'
-// PUT (update an item) = curl localhost:9090/1 -XPUT -d '{"name": "fanta"}'
+// We make the swagger config file by running
+// make swagger
+// This trawls through the code finding all the comments related to swagger and has its way with them
+// Check out the docs at localhost:9090/docs
 
 package main
 
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	"github.com/dannyjmac/go-micro-3/handlers"
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
 )
 
@@ -26,6 +28,11 @@ func main() {
 	getRouter := sm.Methods(http.MethodGet).Subrouter()
 	getRouter.HandleFunc("/", ph.GetProducts)
 
+	ops := middleware.RedocOpts{SpecURL: "/swagger.yaml"}
+	sh := middleware.Redoc(ops, nil)
+	getRouter.Handle("/docs", sh)
+	getRouter.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
+
 	putRouter := sm.Methods(http.MethodPut).Subrouter()
 	putRouter.HandleFunc("/{id:[0-9]+}", ph.UpdateProducts)
 	putRouter.Use(ph.MiddlewareProductValidation)
@@ -33,6 +40,9 @@ func main() {
 	postRouter := sm.Methods(http.MethodPost).Subrouter()
 	postRouter.HandleFunc("/", ph.AddProduct)
 	postRouter.Use(ph.MiddlewareProductValidation)
+
+	deleteRouter := sm.Methods(http.MethodDelete).Subrouter()
+	deleteRouter.HandleFunc("/{id:[0-9]+}", ph.DeleteProduct)
 
 	s := &http.Server{
 		Addr:         ":9090",
