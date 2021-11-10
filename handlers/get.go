@@ -11,8 +11,8 @@ import (
 // responses:
 //	200: productsResponse
 
-// GetProducts returns the products from the data store
-func (p *Products) GetProducts(rw http.ResponseWriter, r *http.Request) {
+// ListProducts returns the products from the data store
+func (p *Products) ListProducts(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle GET Products")
 	lp := data.GetProducts()
 

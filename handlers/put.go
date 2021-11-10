@@ -8,7 +8,15 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (p *Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
+// swagger:route PUT /products{id} products updateProduct
+// Updates a product
+// responses:
+//	201: noContent
+// 	422: errorValidation
+//	501: errorResponse
+
+// Update updates a product in the database
+func (p *Products) Update(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle PUT Product")
 
 	vars := mux.Vars(r)
