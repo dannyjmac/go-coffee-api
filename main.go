@@ -1,8 +1,3 @@
-// We make the swagger config file by running
-// make swagger
-// This trawls through the code finding all the comments related to swagger and has its way with them
-// Check out the docs at localhost:9090/docs
-
 package main
 
 import (
@@ -15,6 +10,7 @@ import (
 
 	"github.com/dannyjmac/go-micro-3/handlers"
 	"github.com/go-openapi/runtime/middleware"
+	gohandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -44,9 +40,18 @@ func main() {
 	deleteRouter := sm.Methods(http.MethodDelete).Subrouter()
 	deleteRouter.HandleFunc("products/{id:[0-9]+}", ph.DeleteProduct)
 
+
+	// CORS - allow cross origin resource sharing
+	// For localhost 3000 but change accordingly
+	ch := gohandlers.CORS(gohandlers.AllowedOrigins([]string{"https://localhost:3000"}))
+
+	// Can also just use a * for everything.
+	// ch := gohandlers.CORS(gohandlers.AllowedOrigins([]string{"*""}))
+
 	s := &http.Server{
 		Addr:         ":9090",
-		Handler:      sm,
+		// Wrapping the standard mux with the CORS handler
+		Handler:      ch(sm),
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
